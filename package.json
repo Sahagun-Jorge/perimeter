@@ -24,9 +24,10 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build:prod": "cp .env.prod .env && craco build",
     "test": "craco test",
-    "eject": "craco eject"
+    "eject": "craco eject",
+    "env:prod": "cp .env.prod .env"
   },
   "eslintConfig": {
     "extends": [
