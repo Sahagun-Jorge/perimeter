@@ -2,6 +2,7 @@ import React, { SetStateAction, useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { Box } from "@mui/material";
 import { config } from "@/config";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
 
 mapboxgl.accessToken = config.mapboxAccessToken;
 
@@ -21,8 +22,19 @@ export const Map = () => {
       zoom: zoom,
     });
 
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      controls: {
+        polygon: true,
+        trash: true,
+      },
+    });
+
+    console.log(map, draw);
+
     // Add navigation control (the +/- zoom buttons)
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
+    map.addControl(draw, "top-left");
 
     map.on("move", () => {
       setLng(
