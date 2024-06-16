@@ -1,8 +1,10 @@
 import React, { SetStateAction, useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
+import mapboxgl, { Map as MapboxMap } from "mapbox-gl";
 import { Box } from "@mui/material";
 import { config } from "@/config";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import { MapControls } from "./MapControls";
+import { When } from "react-if";
 
 mapboxgl.accessToken = config.mapboxAccessToken;
 
@@ -13,41 +15,45 @@ export const Map = () => {
   const [lat, setLat] = useState(40.6489);
   const [zoom, setZoom] = useState(10);
 
+  const [map, setMap] = useState<MapboxMap | null>(null);
+  const [draw, setDraw] = useState<MapboxDraw | null>(null);
+
   // Initialize map when component mounts
   useEffect(() => {
-    const map = new mapboxgl.Map({
+    const newMap = new mapboxgl.Map({
       container: mapContainerRef.current ?? "",
       style: "mapbox://styles/mapbox/streets-v11",
       center: [lng, lat],
       zoom: zoom,
     });
 
-    const draw = new MapboxDraw({
+    const newDraw = new MapboxDraw({
       displayControlsDefault: false,
-      controls: {
-        polygon: true,
-        trash: true,
-      },
     });
-
-    console.log(map, draw);
 
     // Add navigation control (the +/- zoom buttons)
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
-    map.addControl(draw, "top-left");
+    newMap.addControl(new mapboxgl.NavigationControl(), "top-right");
+    newMap.addControl(newDraw, "top-left");
 
-    map.on("move", () => {
+    newMap.on("move", () => {
       setLng(
-        map.getCenter().lng.toFixed(4) as unknown as SetStateAction<number>
+        newMap.getCenter().lng.toFixed(4) as unknown as SetStateAction<number>
       );
       setLat(
-        map.getCenter().lat.toFixed(4) as unknown as SetStateAction<number>
+        newMap.getCenter().lat.toFixed(4) as unknown as SetStateAction<number>
       );
-      setZoom(map.getZoom().toFixed(2) as unknown as SetStateAction<number>);
+      setZoom(newMap.getZoom().toFixed(2) as unknown as SetStateAction<number>);
     });
 
+    setMap(newMap);
+    setDraw(newDraw);
+
     // Clean up on unmount
-    return () => map.remove();
+    return () => {
+      setDraw(null);
+      setMap(null);
+      newMap.remove();
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -80,6 +86,9 @@ export const Map = () => {
         }}
         ref={mapContainerRef}
       />
+      <When condition={draw !== null && map !== null}>
+        <MapControls draw={draw!} map={map!} />
+      </When>
     </Box>
   );
 };
