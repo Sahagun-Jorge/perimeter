@@ -80,7 +80,7 @@ export const Map = () => {
         sx={{
           position: "absolute",
           top: 0,
-          bottom: 0,
+          bottom: "30px",
           left: 0,
           right: 0,
         }}
