@@ -2,6 +2,8 @@ import { Box, Button, Stack, TextField } from "@mui/material";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import { Else, If, Then } from "react-if";
 import { SwipeableDrawer } from "@/components";
+import { useSavePolygon } from "./hooks";
+import { Polygon, Feature, GeoJsonProperties } from "geojson";
 
 interface MapControlsProps {
   draw: MapboxDraw;
@@ -14,6 +16,7 @@ export const MapControls = ({ draw, map }: MapControlsProps) => {
   const [selectedPolygonIds, setSelectedPolygonIds] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
   const [hasError, setHasError] = useState<boolean>(false);
+  const { savePolygon } = useSavePolygon();
 
   const handleAddPolygon = () => {
     setIsEditing(true);
@@ -38,8 +41,20 @@ export const MapControls = ({ draw, map }: MapControlsProps) => {
       return;
     }
     setHasError(false);
-    // TODO: Save Polygon
-    console.log("Save Polygon", title, selectedPolygonIds[0]);
+
+    const polygon = draw.get(selectedPolygonIds[0]) as Feature<
+      Polygon,
+      GeoJsonProperties
+    >;
+
+    if (!polygon) {
+      return;
+    }
+
+    savePolygon(title, polygon);
+    setTitle("");
+    setIsEditing(false);
+    draw.changeMode("simple_select");
   };
 
   useEffect(() => {
@@ -53,7 +68,6 @@ export const MapControls = ({ draw, map }: MapControlsProps) => {
   }, [draw, map]);
 
   useEffect(() => {
-    console.log("selectedPolygons", selectedPolygonIds);
     if (selectedPolygonIds.length > 0) {
       setIsEditing(true);
     } else {
