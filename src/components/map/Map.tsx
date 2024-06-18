@@ -34,9 +34,9 @@ export const Map = () => {
       displayControlsDefault: false,
     });
 
-    // Add navigation control (the +/- zoom buttons)
     newMap.addControl(new mapboxgl.NavigationControl(), "top-right");
     newMap.addControl(newDraw, "top-left");
+    newMap.addControl(new mapboxgl.GeolocateControl(), "top-right");
 
     newMap.on("move", () => {
       setLng(
