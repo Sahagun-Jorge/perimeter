@@ -45,8 +45,10 @@ export const polygonConverter: FirestoreDataConverter<
   fromFirestore: (snapshot: QueryDocumentSnapshot): PolygonDocument => {
     const data = snapshot.data() as DBPolygonDocument;
 
-    const coordinatesList = Object.values(data.polygon.geometry).map(
-      (coordinatesMap) => Object.values(coordinatesMap)
+    const coordinatesList = Object.values(
+      data.polygon.geometry.coordinates
+    ).map((coordinatesMap) =>
+      Object.values(coordinatesMap)
     ) as Polygon["geometry"]["coordinates"];
 
     return {
