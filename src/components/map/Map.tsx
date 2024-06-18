@@ -5,6 +5,8 @@ import { config } from "@/config";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { MapControls } from "./MapControls";
 import { When } from "react-if";
+import { usePolygons } from "./hooks/usePolygons";
+import { Loading } from "@/components";
 
 mapboxgl.accessToken = config.mapboxAccessToken;
 
@@ -14,9 +16,10 @@ export const Map = () => {
   const [lng, setLng] = useState(-111.8593);
   const [lat, setLat] = useState(40.6489);
   const [zoom, setZoom] = useState(10);
-
   const [map, setMap] = useState<MapboxMap | null>(null);
   const [draw, setDraw] = useState<MapboxDraw | null>(null);
+  const [polygonList, isLoading] = usePolygons();
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Initialize map when component mounts
   useEffect(() => {
@@ -45,6 +48,10 @@ export const Map = () => {
       setZoom(newMap.getZoom().toFixed(2) as unknown as SetStateAction<number>);
     });
 
+    newMap.on("load", () => {
+      setMapLoaded(true);
+    });
+
     setMap(newMap);
     setDraw(newDraw);
 
@@ -56,8 +63,17 @@ export const Map = () => {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (mapLoaded && !isLoading && polygonList) {
+      polygonList.forEach(({ polygon }) => {
+        draw?.add(polygon);
+      });
+    }
+  }, [draw, isLoading, mapLoaded, polygonList]);
+
   return (
     <Box>
+      <Loading isLoading={isLoading} />
       <Box
         sx={{
           display: "inline-block",
@@ -87,7 +103,7 @@ export const Map = () => {
         ref={mapContainerRef}
       />
       <When condition={draw !== null && map !== null}>
-        <MapControls draw={draw!} map={map!} />
+        <MapControls draw={draw!} map={map!} polygonList={polygonList} />
       </When>
     </Box>
   );
