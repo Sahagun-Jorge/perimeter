@@ -1,4 +1,5 @@
 import { db } from "@/firebase";
+import { polygonConverter } from "@/models/converters/polygonConverter";
 import {
   addDoc,
   collection,
@@ -27,7 +28,7 @@ export const useSaveDoc = <TModel>(
       try {
         if (id && !newDoc) {
           await setDoc(
-            doc(db, path || documentPath, id),
+            doc(db, path || documentPath, id).withConverter(polygonConverter),
             { updatedAt: serverTimestamp(), ...data },
             { merge }
           );
