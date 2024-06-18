@@ -3,8 +3,7 @@ import { polygonConverter } from "@/models";
 import { where } from "firebase/firestore";
 
 export const usePolygons = () => {
-  // const query = [where("deletedAt", "==", null)];
-  const query = [where("title", "!=", "")];
+  const query = [where("deletedAt", "==", null)];
 
   return useQueryCollection("polygons", polygonConverter, { query });
 };

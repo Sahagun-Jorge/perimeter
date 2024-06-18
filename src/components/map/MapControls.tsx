@@ -1,22 +1,39 @@
 import { Box, Button, Stack, TextField } from "@mui/material";
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Else, If, Then } from "react-if";
 import { SwipeableDrawer } from "@/components";
 import { useSavePolygon } from "./hooks";
 import { Polygon, Feature, GeoJsonProperties } from "geojson";
+import { PolygonDocument } from "@/models";
+import { Timestamp, serverTimestamp } from "firebase/firestore";
 
 interface MapControlsProps {
   draw: MapboxDraw;
   map: mapboxgl.Map;
+  polygonList: PolygonDocument[] | undefined;
 }
 
-export const MapControls = ({ draw, map }: MapControlsProps) => {
+export const MapControls = ({ draw, map, polygonList }: MapControlsProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [open, toggleDrawer] = useState(true);
   const [selectedPolygonIds, setSelectedPolygonIds] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
   const [hasError, setHasError] = useState<boolean>(false);
   const { savePolygon } = useSavePolygon();
+
+  const resetState = () => {
+    setTitle("");
+    setSelectedPolygonIds([]);
+    draw.changeMode("simple_select");
+    setIsEditing(false);
+  };
+
+  const getExistingPolygon = useCallback(
+    (id: string) => {
+      return polygonList?.find((p) => p.polygon.id === id);
+    },
+    [polygonList]
+  );
 
   const handleAddPolygon = () => {
     setIsEditing(true);
@@ -25,17 +42,30 @@ export const MapControls = ({ draw, map }: MapControlsProps) => {
   };
 
   const handleDeletePolygon = () => {
+    // delete polygon from DB
+    if (selectedPolygonIds.length === 0) {
+      return;
+    }
+
+    selectedPolygonIds.forEach((id) => {
+      const polygon = getExistingPolygon(id);
+      if (polygon) {
+        savePolygon({
+          ...polygon,
+          deletedAt: serverTimestamp() as Timestamp,
+        });
+      }
+    });
+
     draw.delete(selectedPolygonIds);
-    setSelectedPolygonIds([]);
-    draw.changeMode("simple_select");
-    setIsEditing(false);
+    resetState();
   };
 
   const handleCreatePolygon = () => {
     setIsEditing(false);
   };
 
-  const handleSavePolygon = () => {
+  const handleSavePolygon = async () => {
     if (title === "") {
       setHasError(true);
       return;
@@ -51,10 +81,23 @@ export const MapControls = ({ draw, map }: MapControlsProps) => {
       return;
     }
 
-    savePolygon(title, polygon);
-    setTitle("");
-    setIsEditing(false);
-    draw.changeMode("simple_select");
+    // Check if polygon exists
+    const existingPolygon = getExistingPolygon(`${polygon.id}`);
+
+    if (existingPolygon) {
+      // Update existing polygon
+      await savePolygon({ ...existingPolygon, title, polygon });
+    } else {
+      // Save new polygon
+      await savePolygon({
+        title,
+        polygon,
+        createdAt: serverTimestamp() as Timestamp,
+        deletedAt: null,
+      });
+    }
+
+    resetState();
   };
 
   useEffect(() => {
@@ -70,10 +113,18 @@ export const MapControls = ({ draw, map }: MapControlsProps) => {
   useEffect(() => {
     if (selectedPolygonIds.length > 0) {
       setIsEditing(true);
+      // Set title to existing polygon title
+      if (selectedPolygonIds.length === 1) {
+        const polygon = getExistingPolygon(selectedPolygonIds[0]);
+
+        if (polygon) {
+          setTitle(polygon.title);
+        }
+      }
     } else {
       setIsEditing(false);
     }
-  }, [selectedPolygonIds]);
+  }, [getExistingPolygon, polygonList, selectedPolygonIds]);
 
   return (
     <SwipeableDrawer

@@ -18,7 +18,7 @@ export const useSaveDoc = <TModel>(
   documentPath: string,
   options: SaveOptions = {}
 ) => {
-  const { merge = true, newDoc = false } = options;
+  const { merge = true } = options;
   const [isSaving, setIsSaving] = useState(false);
 
   const save = useCallback(
@@ -26,10 +26,10 @@ export const useSaveDoc = <TModel>(
       setIsSaving(true);
 
       try {
-        if (id && !newDoc) {
+        if (id) {
           await setDoc(
             doc(db, path || documentPath, id).withConverter(polygonConverter),
-            { updatedAt: serverTimestamp(), ...data },
+            { ...data, updatedAt: serverTimestamp() },
             { merge }
           );
           return id;
@@ -47,7 +47,7 @@ export const useSaveDoc = <TModel>(
         setIsSaving(false);
       }
     },
-    [documentPath, merge, newDoc]
+    [documentPath, merge]
   );
 
   return { save, isSaving };
