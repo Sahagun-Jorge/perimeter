@@ -42,23 +42,24 @@ export const MapControls = ({ draw, map, polygonList }: MapControlsProps) => {
   };
 
   const handleDeletePolygon = () => {
-    // delete polygon from DB
-    if (selectedPolygonIds.length === 0) {
-      return;
+    if (selectedPolygonIds.length > 0) {
+      selectedPolygonIds.forEach((id) => {
+        const polygon = getExistingPolygon(id);
+        if (polygon) {
+          // delete polygon from DB
+          savePolygon({
+            ...polygon,
+            deletedAt: serverTimestamp() as Timestamp,
+          });
+        }
+      });
+
+      draw.delete(selectedPolygonIds);
+      console.log("Deleted polygon");
     }
 
-    selectedPolygonIds.forEach((id) => {
-      const polygon = getExistingPolygon(id);
-      if (polygon) {
-        savePolygon({
-          ...polygon,
-          deletedAt: serverTimestamp() as Timestamp,
-        });
-      }
-    });
-
-    draw.delete(selectedPolygonIds);
     resetState();
+    console.log("Reset state");
   };
 
   const handleCreatePolygon = () => {
@@ -122,6 +123,7 @@ export const MapControls = ({ draw, map, polygonList }: MapControlsProps) => {
         }
       }
     } else {
+      setTitle("");
       setIsEditing(false);
     }
   }, [getExistingPolygon, polygonList, selectedPolygonIds]);
