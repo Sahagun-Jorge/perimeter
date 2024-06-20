@@ -1,11 +1,12 @@
 import { Box, Button, Stack, TextField } from "@mui/material";
 import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Else, If, Then } from "react-if";
+import { Else, If, Then, When } from "react-if";
 import { SwipeableDrawer } from "@/components";
 import { useSavePolygon } from "./hooks";
 import { Polygon, Feature, GeoJsonProperties } from "geojson";
 import { PolygonDocument } from "@/models";
 import { Timestamp, serverTimestamp } from "firebase/firestore";
+import { PolygonListDrawer } from "./PolygonListDrawer";
 
 interface MapControlsProps {
   draw: MapboxDraw;
@@ -129,60 +130,70 @@ export const MapControls = ({ draw, map, polygonList }: MapControlsProps) => {
   }, [getExistingPolygon, polygonList, selectedPolygonIds]);
 
   return (
-    <SwipeableDrawer
-      open={open}
-      onClose={() => toggleDrawer(false)}
-      onOpen={() => toggleDrawer(true)}
-    >
-      <Stack direction="row" gap={2} justifyContent="center" flexWrap="wrap">
-        <If condition={isEditing}>
-          <Then>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleDeletePolygon}
-              size="small"
-              disabled={!isEditing}
-            >
-              Clear
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSavePolygon}
-              size="small"
-              disabled={!isEditing || selectedPolygonIds.length === 0}
-            >
-              Save
-            </Button>
-            <Box component="form" width="100%">
-              <TextField
-                id="title"
-                value={title}
-                label="Title"
-                fullWidth
+    <>
+      <When condition={polygonList !== undefined}>
+        <PolygonListDrawer
+          draw={draw}
+          map={map}
+          polygonList={polygonList}
+          setSelectedPolygonIds={setSelectedPolygonIds}
+        />
+      </When>
+      <SwipeableDrawer
+        open={open}
+        onClose={() => toggleDrawer(false)}
+        onOpen={() => toggleDrawer(true)}
+      >
+        <Stack direction="row" gap={2} justifyContent="center" flexWrap="wrap">
+          <If condition={isEditing}>
+            <Then>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleDeletePolygon}
                 size="small"
-                error={hasError}
-                helperText={hasError ? "Title is required" : ""}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  setTitle(e.target.value);
-                }}
-              />
-            </Box>
-          </Then>
-          <Else>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddPolygon}
-              size="small"
-              sx={{ width: "max-content" }}
-            >
-              Add Polygon
-            </Button>
-          </Else>
-        </If>
-      </Stack>
-    </SwipeableDrawer>
+                disabled={!isEditing}
+              >
+                Clear
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSavePolygon}
+                size="small"
+                disabled={!isEditing || selectedPolygonIds.length === 0}
+              >
+                Save
+              </Button>
+              <Box component="form" width="100%">
+                <TextField
+                  id="title"
+                  value={title}
+                  label="Title"
+                  fullWidth
+                  size="small"
+                  error={hasError}
+                  helperText={hasError ? "Title is required" : ""}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                    setTitle(e.target.value);
+                  }}
+                />
+              </Box>
+            </Then>
+            <Else>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddPolygon}
+                size="small"
+                sx={{ width: "max-content" }}
+              >
+                Add Polygon
+              </Button>
+            </Else>
+          </If>
+        </Stack>
+      </SwipeableDrawer>
+    </>
   );
 };

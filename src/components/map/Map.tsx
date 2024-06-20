@@ -76,24 +76,6 @@ export const Map = () => {
       <Loading isLoading={isLoading} />
       <Box
         sx={{
-          display: "inline-block",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          margin: "12px",
-          backgroundColor: "#404040",
-          color: "#ffffff",
-          zIndex: "1 !important",
-          padding: "6px",
-          fontWeight: "bold",
-        }}
-      >
-        <Box>
-          Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
-        </Box>
-      </Box>
-      <Box
-        sx={{
           position: "absolute",
           top: 0,
           bottom: "30px",
