@@ -28,10 +28,11 @@ export const SwipeableDrawer = ({
       anchor="bottom"
       swipeAreaWidth={drawerBleeding}
       open={open}
-      onClose={onClose}
+      onClose={() => {}}
       onOpen={onOpen}
       ModalProps={{
         keepMounted: true,
+        disableEscapeKeyDown: true,
       }}
       sx={{
         [`& .${drawerClasses.paper}`]: {
