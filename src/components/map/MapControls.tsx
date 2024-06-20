@@ -40,6 +40,7 @@ export const MapControls = ({ draw, map, polygonList }: MapControlsProps) => {
     setIsEditing(true);
     toggleDrawer(true);
     draw.changeMode("draw_polygon");
+    map.getCanvas().style.cursor = "crosshair";
   };
 
   const handleDeletePolygon = () => {

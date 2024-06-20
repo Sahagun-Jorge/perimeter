@@ -52,6 +52,12 @@ export const Map = () => {
       setMapLoaded(true);
     });
 
+    newMap.on("draw.modechange", (change) => {
+      if (change.mode === "direct_select" || change.mode === "simple_select") {
+        newMap.getCanvas().style.cursor = "";
+      }
+    });
+
     setMap(newMap);
     setDraw(newDraw);
 
