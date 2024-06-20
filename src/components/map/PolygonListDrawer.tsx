@@ -1,5 +1,6 @@
 import { Polygon, PolygonDocument } from "@/models";
 import { Button, Drawer, IconButton, Stack, Typography } from "@mui/material";
+import polylabel from "polylabel";
 import React from "react";
 import { Else, If, Then } from "react-if";
 
@@ -23,10 +24,13 @@ export const PolygonListDrawer = ({
 
   const handleClick = (polygon: Polygon) => {
     const { id, geometry } = polygon;
-    draw.changeMode("");
+    // get optimum focus point
+    console.log("geting poly");
+    const point = polylabel(geometry.coordinates, 1.0);
+    console.log("point", point);
     setSelectedPolygonIds([`${id}`]);
     map.flyTo({
-      center: geometry.coordinates[0][0] as [number, number],
+      center: [point[0], point[1]],
       zoom: 12,
     });
   };
